@@ -1,4 +1,4 @@
-Here is the complete, end-to-end guide to getting Ollama running on your Jetson Orin Nano, Nirash. This ensures maximum GPU performance while keeping strict control over your MicroSD card space.
+Here is the complete, end-to-end guide to getting Ollama running on your Jetson Orin Nano. This ensures maximum GPU performance while keeping strict control over your MicroSD card space.
 
 ### Step 1: Configure Docker for the Jetson GPU
 
