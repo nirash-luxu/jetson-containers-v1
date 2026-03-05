@@ -119,4 +119,18 @@ docker image prune -a
 
 These commands stop and remove the container, delete the base NVIDIA Ollama image, forcefully delete the directory holding all the downloaded model weights, and finally clear out any dangling Docker cache layers.
 
-Would you like me to show you how to connect this new local Ollama API to your n8n automation hub so you can start routing AI workflows through it?
+Here is a high-level breakdown of the architecture you just built. You essentially transformed your Jetson Orin Nano into a dedicated, hardware-accelerated AI microservice.
+
+The Architecture of Your Local AI Node
+
+1. The Hardware Bridge (NVIDIA Container Runtime)
+   Standard Docker containers are isolated from the host machine's hardware, meaning they rely purely on the CPU. By modifying the daemon.json file to use the nvidia runtime, you created a direct bridge. This allows the Docker container to bypass the CPU and send heavy matrix multiplications directly to the Orin Nano's GPU, which is required for running LLMs at readable speeds.
+
+2. The AI Engine (Dusty-NV Ollama Build)
+   Standard Ollama Docker images are optimized for x86 desktop processors. The dustynv/ollama:r36.4.0 image you deployed is specifically compiled for the Jetson's ARM64 architecture and JetPack 6.2 environment. It acts as the server, handling the API requests and loading the model weights into the GPU's memory.
+
+3. The Storage Strategy (Bind Mounts)
+   Running models like Llama 3 or Mistral requires downloading files that are several gigabytes in size. By default, Docker hides these inside abstract, hard-to-reach virtual volumes, which is dangerous for a 128GB MicroSD card. The bind mount (-v ~/ollama_data:/root/.ollama) forces the container to save those massive files into a standard, visible folder on your host OS. This guarantees that if you ever need that disk space back, simply deleting that single folder reclaims 100% of it.
+
+4. The Network & Ecosystem (Host Mode)
+   By using network_mode: host, the container shares the exact same IP address as your Jetson board. This turns the Jetson into a local API endpoint on port 11434. It can now act as the dedicated AI brain for your entire home lab. For example, your n8n automation hub running on the Raspberry Pi 5 can securely route workflows—like summarizing emails or analyzing logs from your 24/7 background bots—directly to the Jetson without ever sending that data out to the internet through your Cloudflare tunnel.
