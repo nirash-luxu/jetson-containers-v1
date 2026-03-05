@@ -1,0 +1,15 @@
+services:
+  ollama:
+    image: dustynv/ollama:r36.4.0
+    container_name: ollama_jetson
+    runtime: nvidia
+    restart: always
+    network_mode: host
+    volumes:
+      - ~/ollama_data:/root/.ollama
+    command: ["ollama", "serve"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
