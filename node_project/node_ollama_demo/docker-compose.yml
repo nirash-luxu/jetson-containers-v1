@@ -1,0 +1,6 @@
+services:
+  node_app:
+    build: .
+    container_name: demo_node_client
+    network_mode: host
+    restart: "no"
