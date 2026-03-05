@@ -169,5 +169,3 @@ rm -rf ~/node_ollama_demo
 The first command moves you safely back to your home directory so you are not inside a folder you are about to delete. The second command forcefully and permanently recursively deletes the entire `node_ollama_demo` folder, taking the `index.js`, `package.json`, `Dockerfile`, and `docker-compose.yml` with it.
 
 Your Jetson Orin Nano is now exactly as it was before we started the Node.js demo.
-
-Would you like to move on to setting up that 24/7 persistent Express server version so it can act as an always-on middleware API for your other devices?
