@@ -123,3 +123,51 @@ docker compose up --build
 ```
 
 Docker will download the tiny Alpine Node image, build your project, and execute the script. You will see the prompt sent to the LLM, and seconds later, the generated response will print directly to your terminal.
+
+---
+
+To completely eradicate this Node.js project and recover every single kilobyte of space on your MicroSD card, we need to remove the container, the built images, the base images, the hidden build caches, and finally, the source code directory.
+
+Run these commands in exact order.
+
+### 1. Tear Down the Container and Built Image
+
+```bash
+cd ~/node_ollama_demo
+docker compose down --rmi all
+
+```
+
+The first command ensures you are inside the project directory. The second command uses Docker Compose to stop the container and remove it. The `--rmi all` flag is the crucial addition here; it tells Docker to also delete the custom image it compiled specifically for your `demo_node_client`.
+
+### 2. Remove the Base Node Image
+
+```bash
+docker rmi node:20-alpine
+
+```
+
+This command deletes the foundational Alpine Linux Node.js image that Docker downloaded from the internet to build your project.
+
+### 3. Wipe the Hidden Build Cache
+
+```bash
+docker builder prune -a -f
+
+```
+
+When you ran the build command earlier, Docker saved intermediate cached layers of the installation process behind the scenes. This command forcefully purges Docker's entire internal build cache, guaranteeing no fragmented installation files are left occupying space on your disk.
+
+### 4. Delete the Project Files
+
+```bash
+cd ~
+rm -rf ~/node_ollama_demo
+
+```
+
+The first command moves you safely back to your home directory so you are not inside a folder you are about to delete. The second command forcefully and permanently recursively deletes the entire `node_ollama_demo` folder, taking the `index.js`, `package.json`, `Dockerfile`, and `docker-compose.yml` with it.
+
+Your Jetson Orin Nano is now exactly as it was before we started the Node.js demo.
+
+Would you like to move on to setting up that 24/7 persistent Express server version so it can act as an always-on middleware API for your other devices?
