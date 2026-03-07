@@ -120,5 +120,3 @@ sudo reboot
 ```
 
 This cleanly restarts the system to apply all the restored settings. When the Jetson powers back on, your monitor will load straight into the standard Ubuntu desktop interface.
-
-Would you like me to walk you through how to use the `num_ctx` trick in a Modelfile to shrink the context window of `gemma3:4b` so it can still run without crashing alongside your newly restored desktop?
