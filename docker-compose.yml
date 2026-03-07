@@ -3,10 +3,14 @@ services:
     image: dustynv/ollama:r36.4.0
     container_name: ollama_jetson
     runtime: nvidia
+    shm_size: 4gb
     restart: always
     network_mode: host
+    environment:
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_MODELS=/models
     volumes:
-      - ~/ollama_data:/root/.ollama
+      - /root/ollama_data:/models
     command: ["ollama", "serve"]
     logging:
       driver: "json-file"
