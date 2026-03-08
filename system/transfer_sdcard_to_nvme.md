@@ -127,3 +127,52 @@ sudo sed -i '/vm.swappiness=10/d' /etc/sysctl.conf
 Earlier, when you were on the microSD card, we choked the swappiness down to `10` to protect the fragile flash storage. Now that you have an industrial-strength NVMe, the first command cranks it back up to Ubuntu's default of `60`. This allows the OS to aggressively use the new NVMe swap space to keep your physical RAM wide open for the GPU. The second command simply deletes our old, restrictive SD card rule from your configuration file so it doesn't accidentally come back after a reboot.
 
 Once you run these, your Jetson will be a completely different beast, capable of handling those massive Gemma requests without breaking a sweat.
+
+---
+
+There are two excellent ways to monitor your NVMe swap usage in real-time. The first is built right into Ubuntu, and the second is a custom dashboard built specifically for Jetson hardware.
+
+Here is how to use both.
+
+### Method 1: The Built-In Linux Monitor (htop)
+
+Ubuntu comes with a fast, lightweight terminal task manager called `htop`. It gives you a color-coded view of your system resources.
+
+Run this command in your terminal:
+
+```bash
+htop
+
+```
+
+At the very top left of the screen, you will see two bars:
+
+- **Mem:** This is your physical 8GB of RAM.
+- **Swp:** This is the massive 16GB NVMe swap file we just created.
+
+While running a heavy AI model, you can watch the `Mem` bar fill up. Once it hits its limit, you will see the `Swp` bar start to climb as the Jetson seamlessly pushes overflow data onto your high-speed NVMe drive. To exit the screen, just press `F10` or `q`.
+
+### Method 2: The Jetson Ultimate Dashboard (jtop)
+
+While `htop` is great, the absolute gold standard for NVIDIA hardware is `jtop` (jetson-stats). It shows your RAM, Swap, CPU, and specifically your 1024-core GPU usage, temperature, and power draw all in one place.
+
+First, you need to install it. Run these commands one by one:
+
+```bash
+sudo apt update
+sudo apt install python3-pip -y
+sudo -H pip3 install -U jetson-stats
+sudo systemctl restart jetson_stats.service
+
+```
+
+The first two commands ensure Python's package manager is installed. The third command downloads the `jtop` utility directly to your system. The final command restarts the background service so it can read your hardware sensors properly.
+
+Now, launch the dashboard by running:
+
+```bash
+jtop
+
+```
+
+When the dashboard opens, press the `2` or `3` key on your keyboard to navigate to the **MEM** or **GPU** tabs. Here, you get a highly detailed breakdown of exactly how much GPU memory is active, how much physical RAM is used, and exactly how many megabytes or gigabytes of your NVMe swap are currently keeping the system afloat. Press `q` to quit when you are done.
