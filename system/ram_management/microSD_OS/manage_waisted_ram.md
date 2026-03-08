@@ -70,6 +70,46 @@ Your Docker Compose file is already set to `restart: always`, so Ollama will aut
 
 ---
 
+Here is the ultimate, hyper-aggressive runbook specifically engineered for the microSD card.
+
+The core difference here is how we treat the swap memory. Because you are on flash storage, we are going to combine the extreme bloatware removal with the strict `swappiness=10` rule. This ensures we strip out every useless background app while fiercely protecting your SD card from burning out under heavy AI loads.
+
+Run these phases one by one in your terminal to create the absolute leanest environment possible.
+
+### Phase 1: Aggressive Hardware & Updater Removal
+
+Now we kill the unused hardware scanners (printers, cell modems, Bluetooth) and the background telemetry/update checkers that sit in your RAM doing nothing.
+
+```bash
+sudo systemctl disable --now cups.service cups.socket ModemManager.service bluetooth.service packagekit.service whoopsie.service
+
+```
+
+### Phase 2: Purge Snapd (The RAM Hog)
+
+We completely obliterate Ubuntu's heavy background package manager, which frees up a massive chunk of memory and reduces unnecessary background read/write cycles on your SD card.
+
+```bash
+sudo apt autoremove --purge snapd -y
+
+```
+
+### Phase 3: Flush and Reboot
+
+Finally, we clear out any lingering data fragments and cleanly restart the hardware.
+
+```bash
+sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+sudo reboot
+
+```
+
+### The Result
+
+When your Jetson boots back up, it will be running on absolute bare metal. You will have maximum physical RAM available for your GPU, and your microSD card will be safely shielded from heavy swap abuse.
+
+---
+
 Here is the complete runbook to revert every single optimization we just applied and return your Jetson Orin Nano exactly to its default state.
 
 Run these commands one by one in your terminal:
@@ -110,6 +150,25 @@ systemctl --user unmask tracker-store.service tracker-miner-fs.service tracker-m
 
 ```
 
+### Step 4: Re-enable Hardware & Updaters
+
+```Bash
+sudo systemctl enable --now cups.service cups.socket ModemManager.service bluetooth.service packagekit.service whoopsie.service
+
+```
+
+This revives all the standard background services we killed: the printer server, cellular modem scanner, Bluetooth, auto-updaters, and the crash reporter.
+
+### Step 5: Reinstall Snapd
+
+```Bash
+sudo apt update
+sudo apt install snapd -y
+
+```
+
+Because we completely nuked Ubuntu's heavy background package manager to save RAM, this command forces the system to re-download and reinstall it.
+
 This restores the background Tracker services so Ubuntu can resume indexing your files for fast desktop searches.
 
 ### Step 5: Reboot
@@ -120,70 +179,3 @@ sudo reboot
 ```
 
 This cleanly restarts the system to apply all the restored settings. When the Jetson powers back on, your monitor will load straight into the standard Ubuntu desktop interface.
-
----
-
-Here is the ultimate, hyper-aggressive runbook specifically engineered for the microSD card.
-
-The core difference here is how we treat the swap memory. Because you are on flash storage, we are going to combine the extreme bloatware removal with the strict `swappiness=10` rule. This ensures we strip out every useless background app while fiercely protecting your SD card from burning out under heavy AI loads.
-
-Run these phases one by one in your terminal to create the absolute leanest environment possible.
-
-### Phase 1: Protect the SD Card (The Golden Rule)
-
-First, we lock down the system's memory management so it prioritizes your physical RAM and avoids thrashing your fragile microSD card with overflow data.
-
-```bash
-sudo sysctl vm.swappiness=10
-echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
-
-```
-
-### Phase 2: Kill the GUI and Heavy Daemons
-
-Next, we strip away the desktop environment, the camera background services, and the file indexers.
-
-```bash
-# Disable the GUI (Headless Mode)
-sudo systemctl set-default multi-user.target
-
-# Disable the Camera Daemon
-sudo systemctl stop nvargus-daemon
-sudo systemctl disable nvargus-daemon
-
-# Disable Ubuntu File Indexing (Tracker)
-systemctl --user mask tracker-store.service tracker-miner-fs.service tracker-miner-rss.service tracker-extract.service tracker-miner-apps.service tracker-writeback.service
-
-```
-
-### Phase 3: Aggressive Hardware & Updater Removal
-
-Now we kill the unused hardware scanners (printers, cell modems, Bluetooth) and the background telemetry/update checkers that sit in your RAM doing nothing.
-
-```bash
-sudo systemctl disable --now cups.service cups.socket ModemManager.service bluetooth.service packagekit.service whoopsie.service
-
-```
-
-### Phase 4: Purge Snapd (The RAM Hog)
-
-We completely obliterate Ubuntu's heavy background package manager, which frees up a massive chunk of memory and reduces unnecessary background read/write cycles on your SD card.
-
-```bash
-sudo apt autoremove --purge snapd -y
-
-```
-
-### Phase 5: Flush and Reboot
-
-Finally, we clear out any lingering data fragments and cleanly restart the hardware.
-
-```bash
-sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
-sudo reboot
-
-```
-
-### The Result
-
-When your Jetson boots back up, it will be running on absolute bare metal. You will have maximum physical RAM available for your GPU, and your microSD card will be safely shielded from heavy swap abuse.
