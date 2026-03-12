@@ -57,14 +57,19 @@ nano docker-compose.yml
 ```yaml
 services:
   ollama:
-    image: dustynv/ollama:r36.4.0
+    image: ollama/ollama:latest
     container_name: ollama_jetson
+    command: serve
     runtime: nvidia
+    shm_size: 4gb
     restart: always
     network_mode: host
+    environment:
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_MODELS=/models
+      - JETSON_JETPACK=6
     volumes:
-      - ~/ollama_data:/root/.ollama
-    command: ["ollama", "serve"]
+      - /root/ollama_data:/models
     logging:
       driver: "json-file"
       options:
@@ -74,7 +79,7 @@ services:
 
 Save and exit the file.
 
-The configuration above uses the `dustynv` image built specifically for Jetson boards. It uses `network_mode: host` to make the API accessible on port 11434 on your local network. The `volumes` section maps the internal `.ollama` folder directly to the `~/ollama_data` folder you created earlier. The `logging` section restricts Docker from generating massive text logs that could quietly consume your remaining storage.
+The configuration above uses the `ollama` image built specifically for Jetson boards. It uses `network_mode: host` to make the API accessible on port 11434 on your local network. The `volumes` section maps the internal `.ollama` folder directly to the `~/ollama_data` folder you created earlier. The `logging` section restricts Docker from generating massive text logs that could quietly consume your remaining storage.
 
 ---
 
@@ -111,7 +116,7 @@ When you need to free up the MicroSD card, run these commands to completely wipe
 ```bash
 cd ~/ollama_compose
 docker compose down
-docker rmi dustynv/ollama:r36.4.0
+docker rmi ollama/ollama:latest
 sudo rm -rf ~/ollama_data
 docker image prune -a
 
@@ -126,8 +131,8 @@ The Architecture of Your Local AI Node
 1. The Hardware Bridge (NVIDIA Container Runtime)
    Standard Docker containers are isolated from the host machine's hardware, meaning they rely purely on the CPU. By modifying the daemon.json file to use the nvidia runtime, you created a direct bridge. This allows the Docker container to bypass the CPU and send heavy matrix multiplications directly to the Orin Nano's GPU, which is required for running LLMs at readable speeds.
 
-2. The AI Engine (Dusty-NV Ollama Build)
-   Standard Ollama Docker images are optimized for x86 desktop processors. The dustynv/ollama:r36.4.0 image you deployed is specifically compiled for the Jetson's ARM64 architecture and JetPack 6.2 environment. It acts as the server, handling the API requests and loading the model weights into the GPU's memory.
+2. The AI Engine (Official Jetson GPU Support Ollama Build)
+   Standard Ollama Docker images are optimized for Official Jetson GPU processors. The ollama/ollama:latest image you deployed is specifically compiled for the Jetson's ARM64 architecture and JetPack 6.2 environment. It acts as the server, handling the API requests and loading the model weights into the GPU's memory.
 
 3. The Storage Strategy (Bind Mounts)
    Running models like Llama 3 or Mistral requires downloading files that are several gigabytes in size. By default, Docker hides these inside abstract, hard-to-reach virtual volumes, which is dangerous for a 128GB MicroSD card. The bind mount (-v ~/ollama_data:/root/.ollama) forces the container to save those massive files into a standard, visible folder on your host OS. This guarantees that if you ever need that disk space back, simply deleting that single folder reclaims 100% of it.
